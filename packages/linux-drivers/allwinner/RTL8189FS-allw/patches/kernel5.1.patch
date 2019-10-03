@@ -1,0 +1,82 @@
+diff --git a/os_dep/linux/os_intfs.c b/os_dep/linux/os_intfs.c
+index 8afcc89..87baac5 100644
+--- a/os_dep/linux/os_intfs.c
++++ b/os_dep/linux/os_intfs.c
+@@ -895,20 +895,23 @@ unsigned int rtw_classify8021d(struct sk_buff *skb)
+ 	return dscp >> 5;
+ }
+ 
+- 
++ #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,0))
+ static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0) 	
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
+-				, struct net_device *sb_dev
++    , struct net_device *sb_dev
++    #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,2,0))
++    , select_queue_fallback_t fallback
++    #endif
++)
+ #else
+-                                , void *accel_priv
+-#endif
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0) 
+-				, select_queue_fallback_t fallback
+-#endif
+-
++static u16 rtw_select_queue(struct net_device *dev, struct sk_buff *skb
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0)
++	, void *accel_priv
++	#if LINUX_VERSION_CODE >= KERNEL_VERSION(3, 14, 0)
++	, select_queue_fallback_t fallback
++	#endif
+ #endif
+ )
++#endif
+ {
+ 	_adapter	*padapter = rtw_netdev_priv(dev);
+ 	struct mlme_priv *pmlmepriv = &padapter->mlmepriv;
+diff --git a/os_dep/linux/rtw_android.c b/os_dep/linux/rtw_android.c
+index 9f18d7a..183a861 100644
+--- a/os_dep/linux/rtw_android.c
++++ b/os_dep/linux/rtw_android.c
+@@ -626,7 +626,7 @@ int rtw_android_priv_cmd(struct net_device *net, struct ifreq *ifr, int cmd)
+ 		goto exit;
+ 	}
+ 
+-	if (!access_ok(VERIFY_READ, priv_cmd.buf, priv_cmd.total_len)){
++	if (!access_ok(priv_cmd.buf, priv_cmd.total_len)){
+ 	 	DBG_871X("%s: failed to access memory\n", __FUNCTION__);
+ 		ret = -EFAULT;
+ 		goto exit;
+diff --git a/os_dep/osdep_service.c b/os_dep/osdep_service.c
+index caafddc..cd9d62e 100644
+--- a/os_dep/osdep_service.c
++++ b/os_dep/osdep_service.c
+@@ -1969,7 +1969,7 @@ static int isFileReadable(const char *path, u32 *sz)
+ 		ret = PTR_ERR(fp);
+ 	}
+ 	else {
+-		oldfs = get_fs(); set_fs(get_ds());
++		oldfs = get_fs(); set_fs(KERNEL_DS);
+ 		
+ 		if(1!=readFile(fp, &buf, 1))
+ 			ret = PTR_ERR(fp);
+@@ -2005,7 +2005,7 @@ static int retriveFromFile(const char *path, u8 *buf, u32 sz)
+ 		if( 0 == (ret=openFile(&fp,path, O_RDONLY, 0)) ){
+ 			DBG_871X("%s openFile path:%s fp=%p\n",__FUNCTION__, path ,fp);
+ 
+-			oldfs = get_fs(); set_fs(get_ds());
++			oldfs = get_fs(); set_fs(KERNEL_DS);
+ 			ret=readFile(fp, buf, sz);
+ 			set_fs(oldfs);
+ 			closeFile(fp);
+@@ -2039,7 +2039,7 @@ static int storeToFile(const char *path, u8 *buf, u32 sz)
+ 		if( 0 == (ret=openFile(&fp, path, O_CREAT|O_WRONLY, 0666)) ) {
+ 			DBG_871X("%s openFile path:%s fp=%p\n",__FUNCTION__, path ,fp);
+ 
+-			oldfs = get_fs(); set_fs(get_ds());
++			oldfs = get_fs(); set_fs(KERNEL_DS);
+ 			ret=writeFile(fp, buf, sz);
+ 			set_fs(oldfs);
+ 			closeFile(fp);

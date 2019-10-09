@@ -38,7 +38,7 @@
   # for a list of additinoal drivers see packages/linux-drivers
   # Space separated list is supported,
   # e.g. ADDITIONAL_DRIVERS="DRIVER1 DRIVER2"
-    ADDITIONAL_DRIVERS="$ADDITIONAL_DRIVERS RTL8189FS-allw"
+    ADDITIONAL_DRIVERS="$ADDITIONAL_DRIVERS RTL8189FS"
 
   # Kernel target
     KERNEL_TARGET="zImage"

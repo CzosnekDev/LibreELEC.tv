@@ -2,7 +2,7 @@
 # Copyright (C) 2017-present Team LibreELEC (https://libreelec.tv)
 
 PKG_URL="https://github.com/jwrdegoede/rtl8189ES_linux.git"
-PKG_VERSION="d2b823144ed9f034563e1b1970b93bbe5e7eb7ee"
+PKG_VERSION="50da9756282edf5008a5a567275b33c1d2f16197"
 PKG_GIT_CLONE_BRANCH="rtl8189fs"
 
 PKG_NAME="RTL8189FS"
